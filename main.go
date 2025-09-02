@@ -6,6 +6,7 @@ import (
 	"os"
 
 	"github.com/ercorn/gator/internal/config"
+	_ "github.com/lib/pq"
 )
 
 type state struct {
