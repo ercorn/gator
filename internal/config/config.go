@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 )
@@ -13,18 +14,18 @@ type Config struct {
 
 const config_file_name = ".gatorconfig.json"
 
-func Read() *Config {
+func Read() (Config, error) {
 	path := getConfigFilePath() + "/"
 	data, err := os.ReadFile(path + config_file_name)
 	if err != nil {
-		log.Fatal(err)
+		return Config{}, err
 	}
 	cfg := Config{}
 	err = json.Unmarshal(data, &cfg)
 	if err != nil {
-		log.Fatal(err)
+		return Config{}, err
 	}
-	return &cfg
+	return cfg, nil
 }
 
 func getConfigFilePath() string {
@@ -35,15 +36,16 @@ func getConfigFilePath() string {
 	return path
 }
 
-func (cfg *Config) SetUser(name string) {
+func (cfg *Config) SetUser(name string) error {
 	cfg.CurrentUserName = name
 	data, err := json.Marshal(cfg)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to marshal user config: %w", err)
 	}
 	path := getConfigFilePath()
 	err = os.WriteFile(path+"/"+config_file_name, data, 0644)
 	if err != nil {
-		log.Fatal(err)
+		return fmt.Errorf("failed to write config file: %w", err)
 	}
+	return nil
 }

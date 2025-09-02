@@ -1,15 +1,21 @@
 package main
 
 import (
+	"context"
+	"database/sql"
 	"fmt"
 	"log"
 	"os"
+	"time"
 
 	"github.com/ercorn/gator/internal/config"
+	"github.com/ercorn/gator/internal/database"
+	"github.com/google/uuid"
 	_ "github.com/lib/pq"
 )
 
 type state struct {
+	db  *database.Queries
 	cfg *config.Config
 }
 
@@ -41,21 +47,65 @@ func (c *commands) register(name string, f func(s *state, cmd command) error) er
 
 func handlerLogin(s *state, cmd command) error {
 	if len(cmd.args) == 0 {
-		log.Fatal(fmt.Errorf("the login handler expects a single argument, the username"))
+		return fmt.Errorf("usage: %s <name>", cmd.name)
 	}
-	s.cfg.SetUser(cmd.args[0])
-	fmt.Println("user has been set")
+
+	//check if current username exists in the database, error if not
+	ctx := context.Background()
+	_, err := s.db.GetUser(ctx, cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("failed, username doesn't exist in the database: %w", err)
+	}
+
+	err = s.cfg.SetUser(cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("couldn't set the user: %w", err)
+	}
+	fmt.Println("user has been set!")
+	return nil
+}
+
+func handlerRegister(s *state, cmd command) error {
+	if len(cmd.args) == 0 {
+		return fmt.Errorf("usage: %s <name>", cmd.name)
+	}
+
+	ctx := context.Background()
+	_, err := s.db.CreateUser(ctx, database.CreateUserParams{
+		ID:        int32(uuid.New().ID()),
+		CreatedAt: time.Now(),
+		UpdatedAt: time.Now(),
+		Name:      cmd.args[0],
+	})
+	if err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	err = s.cfg.SetUser(cmd.args[0])
+	if err != nil {
+		return fmt.Errorf("couldn't set the user: %w", err)
+	}
+
+	fmt.Println("user was created:", s.cfg.CurrentUserName)
+
 	return nil
 }
 
 func main() {
-	//cfg := config.Read()
-	//cfg.SetUser("ronyo")
-	//cfg = config.Read()
-	//fmt.Println(cfg)
+	cfg, err := config.Read()
+	if err != nil {
+		log.Fatalf("error reading config: %v", err)
+	}
 
-	curr_state := &state{
-		cfg: config.Read(),
+	db, err := sql.Open("postgres", cfg.DBUrl) //open connection to db
+	if err != nil {
+		log.Fatalf("error opening db connection: %v", err)
+	}
+	dbQueries := database.New(db)
+
+	progam_state := &state{
+		db:  dbQueries,
+		cfg: &cfg,
 	}
 
 	cmds := commands{
@@ -63,6 +113,10 @@ func main() {
 	}
 
 	cmds.register("login", handlerLogin)
+	//register "register" command here, usage: "go run . register lane"
+	cmds.register("register", handlerRegister)
+
+	//parse arguments and run the requested command
 	if len(os.Args) < 2 {
 		log.Fatal(fmt.Errorf("error: please provide a command name"))
 	}
@@ -70,9 +124,9 @@ func main() {
 		name: os.Args[1],
 		args: os.Args[2:],
 	}
-	fmt.Println("input", os.Args[1])
-	err := cmds.run(curr_state, cmd)
+	//fmt.Println("input", os.Args[1])
+	err = cmds.run(progam_state, cmd)
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 }
