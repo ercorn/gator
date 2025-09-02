@@ -71,7 +71,7 @@ func handlerRegister(s *state, cmd command) error {
 	}
 
 	ctx := context.Background()
-	_, err := s.db.CreateUser(ctx, database.CreateUserParams{
+	user, err := s.db.CreateUser(ctx, database.CreateUserParams{
 		ID:        uuid.New(),
 		CreatedAt: time.Now().UTC(),
 		UpdatedAt: time.Now().UTC(),
@@ -86,9 +86,15 @@ func handlerRegister(s *state, cmd command) error {
 		return fmt.Errorf("couldn't set the user: %w", err)
 	}
 
-	fmt.Println("user was created:", s.cfg.CurrentUserName)
+	fmt.Println("user was created:")
+	printUser(user)
 
 	return nil
+}
+
+func printUser(user database.User) {
+	fmt.Printf(" * ID: %v\n", user.ID)
+	fmt.Printf(" * Name: %v\n", user.Name)
 }
 
 func main() {
