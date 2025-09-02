@@ -72,7 +72,7 @@ func handlerRegister(s *state, cmd command) error {
 
 	ctx := context.Background()
 	_, err := s.db.CreateUser(ctx, database.CreateUserParams{
-		ID:        int32(uuid.New().ID()),
+		ID:        uuid.New(),
 		CreatedAt: time.Now(),
 		UpdatedAt: time.Now(),
 		Name:      cmd.args[0],
@@ -101,6 +101,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("error opening db connection: %v", err)
 	}
+	defer db.Close()
 	dbQueries := database.New(db)
 
 	progam_state := &state{
