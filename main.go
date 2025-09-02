@@ -39,8 +39,8 @@ func main() {
 	}
 
 	cmds.register("login", handlerLogin)
-	//register "register" command here, usage: "go run . register lane"
 	cmds.register("register", handlerRegister)
+	cmds.register("reset", handlerReset)
 
 	//parse arguments and run the requested command
 	if len(os.Args) < 2 {
