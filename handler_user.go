@@ -60,3 +60,27 @@ func handlerLogin(s *state, cmd command) error {
 	fmt.Println("user has been set!")
 	return nil
 }
+
+func handlerUsers(s *state, cmd command) error {
+	if len(cmd.args) != 0 {
+		return fmt.Errorf("usage: %s", cmd.name)
+	}
+
+	//TODO: Add a new command called users that calls GetUsers
+	//      and prints all the users to the console.
+	ctx := context.Background()
+	users, err := s.db.GetUsers(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get list of users: %w", err)
+	}
+
+	//prints the users to the console
+	for _, user := range users {
+		if s.cfg.CurrentUserName == user.Name {
+			fmt.Println("*", user.Name, "(current)")
+			continue
+		}
+		fmt.Println("*", user.Name)
+	}
+	return nil
+}
