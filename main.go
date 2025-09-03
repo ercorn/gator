@@ -51,7 +51,7 @@ func main() {
 		name: os.Args[1],
 		args: os.Args[2:],
 	}
-	//fmt.Println("input", os.Args[1])
+
 	err = cmds.run(progam_state, cmd)
 	if err != nil {
 		log.Fatal(err)
