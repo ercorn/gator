@@ -42,6 +42,7 @@ func main() {
 	cmds.register("register", handlerRegister)
 	cmds.register("reset", handlerReset)
 	cmds.register("users", handlerUsers)
+	cmds.register("agg", handlerAgg)
 
 	//parse arguments and run the requested command
 	if len(os.Args) < 2 {

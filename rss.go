@@ -62,3 +62,20 @@ func fetchFeed(ctx context.Context, feedUrl string) (*RSSFeed, error) {
 
 	return &feed, nil
 }
+
+func handlerAgg(s *state, cmd command) error {
+	_ = s
+	if len(cmd.args) != 0 {
+		return fmt.Errorf("usage: %s", cmd.name)
+	}
+
+	url := "https://www.wagslane.dev/index.xml"
+	ctx := context.Background()
+	feed, err := fetchFeed(ctx, url)
+	if err != nil {
+		return fmt.Errorf("failed to feed rss feed: %w", err)
+	}
+
+	fmt.Println(feed)
+	return nil
+}
