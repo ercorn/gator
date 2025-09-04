@@ -16,3 +16,11 @@ DELETE FROM users;
 
 -- name: GetUsers :many
 SELECT * FROM users;
+
+-- name: CreateFeed :exec
+INSERT INTO feeds (name, url, user_id)
+VALUES (
+    $1,
+    $2,
+    $3
+);

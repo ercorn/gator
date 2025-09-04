@@ -12,6 +12,26 @@ import (
 	"github.com/google/uuid"
 )
 
+const createFeed = `-- name: CreateFeed :exec
+INSERT INTO feeds (name, url, user_id)
+VALUES (
+    $1,
+    $2,
+    $3
+)
+`
+
+type CreateFeedParams struct {
+	Name   string
+	Url    string
+	UserID uuid.UUID
+}
+
+func (q *Queries) CreateFeed(ctx context.Context, arg CreateFeedParams) error {
+	_, err := q.db.ExecContext(ctx, createFeed, arg.Name, arg.Url, arg.UserID)
+	return err
+}
+
 const createUser = `-- name: CreateUser :one
 INSERT INTO users (id, created_at, updated_at, name)
 VALUES (
