@@ -7,6 +7,8 @@ import (
 	"html"
 	"io"
 	"net/http"
+
+	"github.com/ercorn/gator/internal/database"
 )
 
 type RSSItem struct {
@@ -78,4 +80,30 @@ func handlerAgg(s *state, cmd command) error {
 
 	fmt.Println(feed)
 	return nil
+}
+
+func handlerAddFeed(s *state, cmd command) error {
+	if len(cmd.args) != 2 {
+		return fmt.Errorf("usage: %s <feed_name> <url>", cmd.name)
+	}
+
+	ctx := context.Background()
+	user, err := s.db.GetUser(ctx, s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("failed to get user: %w", err)
+	}
+
+	feed_params := database.CreateFeedParams{
+		Name:   cmd.args[0],
+		Url:    cmd.args[1],
+		UserID: user.ID,
+	}
+	err = s.db.CreateFeed(ctx, feed_params)
+	if err != nil {
+		return fmt.Errorf("failed to create feed: %w", err)
+	}
+
+	fmt.Println("Feed: ", feed_params)
+	return nil
+
 }
