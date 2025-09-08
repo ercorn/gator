@@ -98,12 +98,35 @@ func handlerAddFeed(s *state, cmd command) error {
 		Url:    cmd.args[1],
 		UserID: user.ID,
 	}
-	err = s.db.CreateFeed(ctx, feed_params)
+	feed, err := s.db.CreateFeed(ctx, feed_params)
 	if err != nil {
 		return fmt.Errorf("failed to create feed: %w", err)
 	}
 
-	fmt.Println("Feed: ", feed_params)
+	fmt.Println("Feed: ", feed)
 	return nil
 
+}
+
+func handlerFeeds(s *state, cmd command) error {
+	if len(cmd.args) != 0 {
+		return fmt.Errorf("usage: %s", cmd.name)
+	}
+
+	ctx := context.Background()
+	feeds, err := s.db.GetFeeds(ctx)
+	if err != nil {
+		return fmt.Errorf("failed to get list of feeds: %w", err)
+	}
+
+	for _, feed := range feeds {
+		fmt.Println("Feed: ", feed)
+		username, err := s.db.GetUserNameFromID(ctx, feed.UserID)
+		if err != nil {
+			return fmt.Errorf("failed to get username of feed creator: %w", err)
+		}
+		fmt.Println("Username: ", username)
+	}
+
+	return nil
 }
