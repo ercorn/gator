@@ -17,17 +17,5 @@ DELETE FROM users;
 -- name: GetUsers :many
 SELECT * FROM users;
 
--- name: CreateFeed :one
-INSERT INTO feeds (name, url, user_id)
-VALUES (
-    $1,
-    $2,
-    $3
-)
-RETURNING *;
-
--- name: GetFeeds :many
-SELECT * FROM feeds;
-
 -- name: GetUserNameFromID :one
 SELECT name FROM users WHERE id = $1;
