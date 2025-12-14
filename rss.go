@@ -126,13 +126,20 @@ func handlerFeeds(s *state, cmd command) error {
 		return fmt.Errorf("failed to get list of feeds: %w", err)
 	}
 
+	if len(feeds) == 0 {
+		fmt.Println("No feeds found.")
+		return nil
+	}
+
+	fmt.Printf("Found %d feeds:\n", len(feeds))
 	for _, feed := range feeds {
-		fmt.Println("Feed: ", feed)
-		username, err := s.db.GetUserNameFromID(ctx, feed.UserID)
+		fmt.Println("Feeds:")
+		user, err := s.db.GetUserByID(ctx, feed.UserID)
 		if err != nil {
-			return fmt.Errorf("failed to get username of feed creator: %w", err)
+			return fmt.Errorf("failed to get user of feed creator: %w", err)
 		}
-		fmt.Println("Username: ", username)
+		printFeed(feed, user)
+		fmt.Println("======================================================")
 	}
 
 	return nil
