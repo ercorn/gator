@@ -47,8 +47,8 @@ func handlerFollow(s *state, cmd command) error {
 	}
 
 	fmt.Println("Feed followed successfully!")
-	fmt.Println("Username:", feed_follow[0].UserName)
-	fmt.Println("Feed name:", feed_follow[0].FeedName)
+	fmt.Println("Username:", feed_follow.UserName)
+	fmt.Println("Feed name:", feed_follow.FeedName)
 	fmt.Println("==================================================")
 
 	return nil

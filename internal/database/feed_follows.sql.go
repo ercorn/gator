@@ -12,7 +12,7 @@ import (
 	"github.com/google/uuid"
 )
 
-const createFeedFollow = `-- name: CreateFeedFollow :many
+const createFeedFollow = `-- name: CreateFeedFollow :one
 WITH inserted_feed_follow AS (
     INSERT INTO feed_follows (id, created_at, updated_at, user_id, feed_id)
     VALUES (
@@ -47,21 +47,53 @@ type CreateFeedFollowRow struct {
 	UserName  string
 }
 
-func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowParams) ([]CreateFeedFollowRow, error) {
-	rows, err := q.db.QueryContext(ctx, createFeedFollow,
+func (q *Queries) CreateFeedFollow(ctx context.Context, arg CreateFeedFollowParams) (CreateFeedFollowRow, error) {
+	row := q.db.QueryRowContext(ctx, createFeedFollow,
 		arg.ID,
 		arg.CreatedAt,
 		arg.UpdatedAt,
 		arg.UserID,
 		arg.FeedID,
 	)
+	var i CreateFeedFollowRow
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.FeedID,
+		&i.FeedName,
+		&i.UserName,
+	)
+	return i, err
+}
+
+const getFeedFollowsForUser = `-- name: GetFeedFollowsForUser :many
+SELECT feed_follows.id, feed_follows.created_at, feed_follows.updated_at, feed_follows.user_id, feed_follows.feed_id, feeds.name AS feed_name, users.name AS user_name FROM feed_follows
+INNER JOIN users ON users.id = feed_follows.user_id
+INNER JOIN feeds ON feeds.id = feed_follows.feed_id
+WHERE feed_follows.user_id = $1
+`
+
+type GetFeedFollowsForUserRow struct {
+	ID        uuid.UUID
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	UserID    uuid.UUID
+	FeedID    uuid.UUID
+	FeedName  string
+	UserName  string
+}
+
+func (q *Queries) GetFeedFollowsForUser(ctx context.Context, userID uuid.UUID) ([]GetFeedFollowsForUserRow, error) {
+	rows, err := q.db.QueryContext(ctx, getFeedFollowsForUser, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []CreateFeedFollowRow
+	var items []GetFeedFollowsForUserRow
 	for rows.Next() {
-		var i CreateFeedFollowRow
+		var i GetFeedFollowsForUserRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.CreatedAt,
