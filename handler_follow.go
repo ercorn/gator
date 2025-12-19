@@ -53,3 +53,29 @@ func handlerFollow(s *state, cmd command) error {
 
 	return nil
 }
+
+// Add a following command. It should print all the names of the feeds the current user is following.
+func handlerFollowing(s *state, cmd command) error {
+	if len(cmd.args) != 0 {
+		return fmt.Errorf("usage: %s", cmd.name)
+	}
+
+	//get current user from db by name
+	user, err := s.db.GetUser(context.Background(), s.cfg.CurrentUserName)
+	if err != nil {
+		return fmt.Errorf("failed to get current user: %w", err)
+	}
+
+	//get array of feeds followed by the current user
+	feed_follows, err := s.db.GetFeedFollowsForUser(context.Background(), user.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get feed follows for the current user: %w", err)
+	}
+
+	fmt.Println("Current username:", user.Name)
+	fmt.Println("Feed names:")
+	for _, follow := range feed_follows {
+		fmt.Println("-", follow.FeedName)
+	}
+	return nil
+}
