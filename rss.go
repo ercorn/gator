@@ -111,6 +111,16 @@ func handlerAddFeed(s *state, cmd command) error {
 	printFeed(feed, user)
 	fmt.Println("\n======================================")
 
+	//Automatically create a feed follow record for the current user when they add a feed.
+	f_f_cmd := command{
+		name: "follow",
+		args: []string{cmd.args[1]},
+	}
+	err = handlerFollow(s, f_f_cmd)
+	if err != nil {
+		return fmt.Errorf("failed call to <follow> command handler: %w", err)
+	}
+
 	return nil
 
 }
