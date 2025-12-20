@@ -72,6 +72,11 @@ func handlerFollowing(s *state, cmd command, user database.User) error {
 		return fmt.Errorf("failed to get feed follows for the current user: %w", err)
 	}
 
+	if len(feed_follows) == 0 {
+		fmt.Println("No feed follows found for this user.")
+		return nil
+	}
+
 	fmt.Println("Current username:", user.Name)
 	fmt.Println("Feed names:")
 	for _, follow := range feed_follows {
