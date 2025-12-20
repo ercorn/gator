@@ -84,16 +84,16 @@ func handlerAgg(s *state, cmd command) error {
 	return nil
 }
 
-func handlerAddFeed(s *state, cmd command) error {
+func handlerAddFeed(s *state, cmd command, user database.User) error {
 	if len(cmd.args) != 2 {
 		return fmt.Errorf("usage: %s <feed_name> <url>", cmd.name)
 	}
 
 	ctx := context.Background()
-	user, err := s.db.GetUser(ctx, s.cfg.CurrentUserName)
-	if err != nil {
-		return fmt.Errorf("failed to get user: %w", err)
-	}
+	// user, err := s.db.GetUser(ctx, s.cfg.CurrentUserName)
+	// if err != nil {
+	// 	return fmt.Errorf("failed to get user: %w", err)
+	// }
 
 	feed, err := s.db.CreateFeed(ctx, database.CreateFeedParams{
 		ID:        uuid.New(),
@@ -116,7 +116,7 @@ func handlerAddFeed(s *state, cmd command) error {
 		name: "follow",
 		args: []string{cmd.args[1]},
 	}
-	err = handlerFollow(s, f_f_cmd)
+	err = handlerFollow(s, f_f_cmd, user)
 	if err != nil {
 		return fmt.Errorf("failed call to <follow> command handler: %w", err)
 	}
