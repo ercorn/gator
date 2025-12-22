@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"html"
@@ -162,4 +163,36 @@ func printFeed(feed database.Feed, user database.User) {
 	fmt.Printf("* Name:          %s\n", feed.Name)
 	fmt.Printf("* URL:           %s\n", feed.Url)
 	fmt.Printf("* User:          %s\n", user.Name)
+}
+
+func scrapeFeeds(s *state) {
+	next_feed, err := s.db.GetNextFeedToFetch(context.Background())
+	if err != nil {
+		fmt.Println("failed to get next feed:", err)
+		return
+	}
+
+	err = s.db.MarkFeedFetched(context.Background(), database.MarkFeedFetchedParams{
+		ID: next_feed.ID,
+		LastFetchedAt: sql.NullTime{
+			Time:  time.Now().UTC(),
+			Valid: true,
+		},
+		UpdatedAt: time.Now().UTC(),
+	})
+	if err != nil {
+		fmt.Println("failed to mark feed as fetched:", err)
+		return
+	}
+
+	fetched_feed, err := fetchFeed(context.Background(), next_feed.Url)
+	if err != nil {
+		fmt.Println("failed to fetch feed:", err)
+		return
+	}
+
+	fmt.Println("Feed Item Titles:")
+	for _, item := range fetched_feed.Channel.Item {
+		fmt.Println("-", item.Title)
+	}
 }
