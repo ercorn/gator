@@ -172,13 +172,14 @@ func scrapeFeeds(s *state) {
 		return
 	}
 
+	now := time.Now().UTC()
 	err = s.db.MarkFeedFetched(context.Background(), database.MarkFeedFetchedParams{
 		ID: next_feed.ID,
 		LastFetchedAt: sql.NullTime{
-			Time:  time.Now().UTC(),
+			Time:  now,
 			Valid: true,
 		},
-		UpdatedAt: time.Now().UTC(),
+		UpdatedAt: now,
 	})
 	if err != nil {
 		fmt.Println("failed to mark feed as fetched:", err)
