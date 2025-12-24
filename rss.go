@@ -2,11 +2,13 @@ package main
 
 import (
 	"context"
+	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"html"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/ercorn/gator/internal/database"
@@ -186,8 +188,37 @@ func scrapeFeeds(s *state) {
 	}
 
 	fmt.Println("Fetched feed:", fetched_feed.Channel.Title)
-	fmt.Println("Feed Item Titles:")
 	for _, item := range fetched_feed.Channel.Item {
-		fmt.Println("-", item.Title)
+
+		published_at := sql.NullTime{}
+		if t, err := time.Parse(time.RFC1123Z, item.PubDate); err == nil {
+			published_at = sql.NullTime{
+				Time:  t,
+				Valid: true,
+			}
+		}
+		_, err := s.db.CreatePost(context.Background(), database.CreatePostParams{
+			ID:        uuid.New(),
+			CreatedAt: time.Now().UTC(),
+			UpdatedAt: time.Now().UTC(),
+			Title:     item.Title,
+			Url:       item.Link,
+			Description: sql.NullString{
+				String: item.Description,
+				Valid:  true,
+			},
+			PublishedAt: published_at,
+			FeedID:      next_feed.ID,
+		})
+
+		if err != nil {
+			if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
+				continue //ignore duplicates
+			}
+			fmt.Println("Couldn't create post: %w", err)
+			continue
+		}
 	}
+
+	fmt.Printf("Feed %s collected, %v posts found", next_feed.Name, len(fetched_feed.Channel.Item))
 }
