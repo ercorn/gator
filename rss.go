@@ -220,5 +220,5 @@ func scrapeFeeds(s *state) {
 		}
 	}
 
-	fmt.Printf("Feed %s collected, %v posts found", next_feed.Name, len(fetched_feed.Channel.Item))
+	fmt.Printf("Feed %s collected, %v posts found\n", next_feed.Name, len(fetched_feed.Channel.Item))
 }
