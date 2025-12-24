@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"database/sql"
 	"encoding/xml"
 	"fmt"
 	"html"
@@ -174,15 +173,7 @@ func scrapeFeeds(s *state) {
 		return
 	}
 
-	now := time.Now().UTC()
-	err = s.db.MarkFeedFetched(context.Background(), database.MarkFeedFetchedParams{
-		ID: next_feed.ID,
-		LastFetchedAt: sql.NullTime{
-			Time:  now,
-			Valid: true,
-		},
-		UpdatedAt: now,
-	})
+	_, err = s.db.MarkFeedFetched(context.Background(), next_feed.ID)
 	if err != nil {
 		fmt.Println("failed to mark feed as fetched:", err)
 		return
