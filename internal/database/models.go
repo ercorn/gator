@@ -36,7 +36,7 @@ type Post struct {
 	Title       string
 	Url         string
 	Description sql.NullString
-	PublishedAt string
+	PublishedAt time.Time
 	FeedID      uuid.UUID
 }
 
